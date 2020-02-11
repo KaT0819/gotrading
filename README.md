@@ -1,0 +1,2 @@
+# gotrading
+bitflyerのトレード
