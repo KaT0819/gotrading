@@ -5,8 +5,10 @@ RUN apt -y update
 # nginx
 #RUN apt install -y nginx1.12
 
+# package
 RUN go get golang.org/x/tools/cmd/godoc
 RUN go get gopkg.in/ini.v1
+RUN go get github.com/gorilla/websocket
 
 RUN mkdir -p /data/gotrading
 
