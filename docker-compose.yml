@@ -1,0 +1,39 @@
+version: '3'
+services:
+    gotrading_web:
+      build:
+        context: .
+        dockerfile: ./docker/web/Dockerfile
+      volumes:
+          - ./:/data/gotrading
+      tty: true # コンテナの起動永続化
+      # command: tail -f /dev/null
+      container_name: gotrading_web
+      environment:
+        ENV_MODE: docker
+      ports:
+        - '80:80'
+        - '443:443'
+      networks:
+        - default
+        - gotrading_net
+
+    gotrading_db:
+      build:
+        context: .
+        dockerfile: ./docker/rdb/Dockerfile
+      volumes:
+          - ./server_config/sql:/docker-entrypoint-initdb.d
+      container_name: gotrading_db
+      environment:
+        MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        MYSQL_DATABASE: gotrading
+        MYSQL_ROOT_HOST: '%'
+      ports:
+        - '23306:3306'
+      networks:
+        - gotrading_net
+
+networks:
+  gotrading_net:
+    driver: bridge
