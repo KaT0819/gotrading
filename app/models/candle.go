@@ -54,22 +54,31 @@ func (c *Candle) Save() error {
 
 func GetCandle(productCode string, duration time.Duration, dateTime time.Time) *Candle {
 	tableName := GetCandleTableName(productCode, duration)
-	cmd := fmt.Sprintf("SELECT time, open, close, high, low, volume FROM  %s WHERE time = ?", tableName)
-	row := DbConnection.QueryRow(cmd, dateTime.Format(time.RFC3339))
+	cmd := fmt.Sprintf(`
+		SELECT time, open, close, high, low, volume FROM %s WHERE time = '%s'`,
+		tableName, dateTime.Format(time.RFC3339))
+	row := DbConnection.QueryRow(cmd)
 	var candle Candle
 	err := row.Scan(&candle.Time, &candle.Open, &candle.Close, &candle.High, &candle.Low, &candle.Volume)
 	if err != nil {
 		return nil
 	}
-	return NewCandle(productCode, duration, candle.Time, candle.Open, candle.Close, candle.High, candle.Low, candle.Volume)
+	return NewCandle(
+		productCode,
+		duration,
+		candle.Time,
+		candle.Open,
+		candle.Close,
+		candle.High,
+		candle.Low,
+		candle.Volume)
 }
 
 func CreateCandleWithDuration(ticker bitflyer.Ticker, productCode string, duration time.Duration) bool {
 	currentCandle := GetCandle(productCode, duration, ticker.TruncateDateTime(duration))
 	price := ticker.GetMidPrice()
 	if currentCandle == nil {
-		candle := NewCandle(productCode, duration, ticker.TruncateDateTime(duration),
-			price, price, price, price, ticker.Volume)
+		candle := NewCandle(productCode, duration, ticker.TruncateDateTime(duration), price, price, price, price, ticker.Volume)
 		candle.Create()
 		return true
 	}
@@ -83,4 +92,32 @@ func CreateCandleWithDuration(ticker bitflyer.Ticker, productCode string, durati
 	currentCandle.Close = price
 	currentCandle.Save()
 	return false
+}
+
+func GetAllCandle(productCode string, duration time.Duration, limit int) (dfCandle *DataFrameCandle, err error) {
+	tableName := GetCandleTableName(productCode, duration)
+	cmd := fmt.Sprintf(`SELECT * FROM (
+		SELECT time, open, close, high, low, volume FROM %s ORDER BY time DESC LIMIT ?
+		) ORDER BY time ASC;`, tableName)
+	rows, err := DbConnection.Query(cmd, limit)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	dfCandle = &DataFrameCandle{}
+	dfCandle.ProductCode = productCode
+	dfCandle.Duration = duration
+	for rows.Next() {
+		var candle Candle
+		candle.ProductCode = productCode
+		candle.Duration = duration
+		rows.Scan(&candle.Time, &candle.Open, &candle.Close, &candle.High, &candle.Low, &candle.Volume)
+		dfCandle.Candles = append(dfCandle.Candles, candle)
+	}
+	err = rows.Err()
+	if err != nil {
+		return
+	}
+	return dfCandle, nil
 }
