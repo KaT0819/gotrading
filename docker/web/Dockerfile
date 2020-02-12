@@ -9,6 +9,7 @@ RUN apt -y update
 RUN go get golang.org/x/tools/cmd/godoc
 RUN go get gopkg.in/ini.v1
 RUN go get github.com/gorilla/websocket
+RUN go get github.com/mattn/go-sqlite3
 
 RUN mkdir -p /data/gotrading
 
