@@ -71,13 +71,11 @@ func (api *APIClient) doRequest(method, urlPath string, query map[string]string,
 	}
 	resp, err := api.httpClient.Do(req)
 	if err != nil {
-		log.Printf("httpClient err=%s", err.Error())
 		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("ReadAll err=%s", err.Error())
 		return nil, err
 	}
 	return body, nil
@@ -289,12 +287,9 @@ func (api *APIClient) SendOrder(order *Order) (*ResponseSendChildOrder, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("doRequest before")
 	url := "me/sendchildorder"
 	resp, err := api.doRequest("POST", url, map[string]string{}, data)
-	log.Printf("doRequest after %s", resp)
 	if err != nil {
-		log.Printf("api.doRequest, err=%s", err.Error())
 		return nil, err
 	}
 	var response ResponseSendChildOrder
