@@ -3,33 +3,48 @@ package models
 import (
 	"github.com/markcheno/go-talib"
 	"time"
+
+	"gotrading/tradingalgo"
 )
 
 type DataFrameCandle struct {
-	ProductCode string        `json:"product_code"`
-	Duration    time.Duration `json:"duration"`
-	Candles     []Candle      `json:"candles"`
-	Smas        []Sma         `json:"smas,omitempty"`
-	Emas        []Ema         `json:"emas,omitempty"`
-	BBands      *BBands       `json:"bbands,omitempty"`
+	ProductCode   string         `json:"product_code"`
+	Duration      time.Duration  `json:"duration"`
+	Candles       []Candle       `json:"candles"`
+	Smas          []Sma          `json:"smas,omitempty"`
+	Emas          []Ema          `json:"emas,omitempty"`
+	BBands        *BBands        `json:"bbands,omitempty"`
+	IchimokuCloud *IchimokuCloud `json:"ichimoku,omitempty"`
 }
 
+// Sma 移動平均線
 type Sma struct {
 	Period int       `json:"period,omitempty"`
 	Values []float64 `json:"values,omitempty"`
 }
 
+// Ema 平滑移動平均線
 type Ema struct {
 	Period int       `json:"period,omitempty"`
 	Values []float64 `json:"values,omitempty"`
 }
 
+// BBands ボリンジャーバンド
 type BBands struct {
 	N    int       `json:"n,omitempty"`
 	K    float64   `json:"k,omitempty"`
 	Up   []float64 `json:"up,omitempty"`
 	Mid  []float64 `json:"mid,omitempty"`
 	Down []float64 `json:"down,omitempty"`
+}
+
+// IchimokuCloud 一目均衡表
+type IchimokuCloud struct {
+	Tenkan  []float64 `json:"tenkan,omitempty"`
+	Kijun   []float64 `json:"kijun,omitempty"`
+	SenkouA []float64 `json:"senkoua,omitempty"`
+	SenkouB []float64 `json:"senkoub,omitempty"`
+	Chikou  []float64 `json:"chikou,omitempty"`
 }
 
 func (df *DataFrameCandle) Times() []time.Time {
@@ -111,6 +126,22 @@ func (df *DataFrameCandle) AddBBands(n int, k float64) bool {
 			Up:   up,
 			Mid:  mid,
 			Down: down,
+		}
+		return true
+	}
+	return false
+}
+
+func (df *DataFrameCandle) AddIchimoku() bool {
+	tenkanN := 9
+	if len(df.Closes()) >= tenkanN {
+		tenkan, kijun, senkouA, senkouB, chikou := tradingalgo.IchimokuCloud(df.Closes())
+		df.IchimokuCloud = &IchimokuCloud{
+			Tenkan:  tenkan,
+			Kijun:   kijun,
+			SenkouA: senkouA,
+			SenkouB: senkouB,
+			Chikou:  chikou,
 		}
 		return true
 	}
