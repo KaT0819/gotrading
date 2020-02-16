@@ -42,8 +42,8 @@ func NewSignalEvents() *SignalEvents {
 
 func GetSignalEventsByCount(loadEvents int) *SignalEvents {
 	cmd := fmt.Sprintf(`SELECT * FROM (
-		SELECT time, product_code, side, price, size FROM %s WHERE product_code = ? ORDER BY time DESC LIMIT ? )
-		ORDER BY time ASC;`, tableNameSignalEvents)
+        SELECT time, product_code, side, price, size FROM %s WHERE product_code = ? ORDER BY time DESC LIMIT ? )
+        ORDER BY time ASC;`, tableNameSignalEvents)
 	rows, err := DbConnection.Query(cmd, config.Config.ProductCode, loadEvents)
 	if err != nil {
 		return nil
@@ -65,10 +65,10 @@ func GetSignalEventsByCount(loadEvents int) *SignalEvents {
 
 func GetSignalEventsAfterTime(timeTime time.Time) *SignalEvents {
 	cmd := fmt.Sprintf(`SELECT * FROM (
-				SELECT time, product_code, side, price, size FROM %s
-				WHERE DATETIME(time) >= DATETIME(?)
-				ORDER BY time DESC
-			) ORDER BY time ASC;`, tableNameSignalEvents)
+                SELECT time, product_code, side, price, size FROM %s
+                WHERE DATETIME(time) >= DATETIME(?)
+                ORDER BY time DESC
+            ) ORDER BY time ASC;`, tableNameSignalEvents)
 	rows, err := DbConnection.Query(cmd, timeTime.Format(time.RFC3339))
 	if err != nil {
 		return nil

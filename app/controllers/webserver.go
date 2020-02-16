@@ -187,8 +187,12 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 
 	events := r.URL.Query().Get("events")
 	if events != "" {
-		firstTime := df.Candles[0].Time
-		df.AddEvents(firstTime)
+		if config.Config.BackTest {
+			df.Events = Ai.SignalEvents.CollectAfter(df.Candles[0].Time)
+		} else {
+			firstTime := df.Candles[0].Time
+			df.AddEvents(firstTime)
+		}
 	}
 
 	js, err := json.Marshal(df)
