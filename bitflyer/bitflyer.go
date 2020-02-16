@@ -57,7 +57,6 @@ func (api *APIClient) doRequest(method, urlPath string, query map[string]string,
 	log.Printf("action=doRequest endpoint=%s", endpoint)
 	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(data))
 	if err != nil {
-		log.Printf("NewRequest err=%s", err.Error())
 		return
 	}
 	q := req.URL.Query()
