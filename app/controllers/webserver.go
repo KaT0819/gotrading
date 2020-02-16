@@ -16,12 +16,6 @@ import (
 var templates = template.Must(template.ParseFiles("app/views/chart.html"))
 
 func viewChartHandler(w http.ResponseWriter, r *http.Request) {
-	//	limit := 100
-	//	duration := "1m"
-	//	durationTime := config.Config.Durations[duration]
-	//	df, _ := models.GetAllCandle(config.Config.ProductCode, durationTime, limit)
-
-	//	err := templates.ExecuteTemplate(w, "chart.html", df.Candles)
 	err := templates.ExecuteTemplate(w, "chart.html", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -58,7 +52,7 @@ func apiMakeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFun
 func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	productCode := r.URL.Query().Get("product_code")
 	if productCode == "" {
-		APIError(w, "Not exists product_code param", http.StatusBadRequest)
+		APIError(w, "No product_code param", http.StatusBadRequest)
 		return
 	}
 	strLimit := r.URL.Query().Get("limit")
@@ -74,6 +68,51 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	durationTime := config.Config.Durations[duration]
 
 	df, _ := models.GetAllCandle(productCode, durationTime, limit)
+
+	sma := r.URL.Query().Get("sma")
+	if sma != "" {
+		strSmaPeriod1 := r.URL.Query().Get("smaPeriod1")
+		strSmaPeriod2 := r.URL.Query().Get("smaPeriod2")
+		strSmaPeriod3 := r.URL.Query().Get("smaPeriod3")
+		period1, err := strconv.Atoi(strSmaPeriod1)
+		if strSmaPeriod1 == "" || err != nil || period1 < 0 {
+			period1 = 7
+		}
+		period2, err := strconv.Atoi(strSmaPeriod2)
+		if strSmaPeriod2 == "" || err != nil || period2 < 0 {
+			period2 = 14
+		}
+		period3, err := strconv.Atoi(strSmaPeriod3)
+		if strSmaPeriod3 == "" || err != nil || period3 < 0 {
+			period3 = 50
+		}
+		df.AddSma(period1)
+		df.AddSma(period2)
+		df.AddSma(period3)
+	}
+
+	ema := r.URL.Query().Get("ema")
+	if ema != "" {
+		strEmaPeriod1 := r.URL.Query().Get("emaPeriod1")
+		strEmaPeriod2 := r.URL.Query().Get("emaPeriod2")
+		strEmaPeriod3 := r.URL.Query().Get("emaPeriod3")
+		period1, err := strconv.Atoi(strEmaPeriod1)
+		if strEmaPeriod1 == "" || err != nil || period1 < 0 {
+			period1 = 7
+		}
+		period2, err := strconv.Atoi(strEmaPeriod2)
+		if strEmaPeriod2 == "" || err != nil || period2 < 0 {
+			period2 = 14
+		}
+		period3, err := strconv.Atoi(strEmaPeriod3)
+		if strEmaPeriod3 == "" || err != nil || period3 < 0 {
+			period3 = 50
+		}
+		df.AddEma(period1)
+		df.AddEma(period2)
+		df.AddEma(period3)
+
+	}
 
 	js, err := json.Marshal(df)
 	if err != nil {

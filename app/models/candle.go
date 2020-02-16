@@ -54,7 +54,7 @@ func (c *Candle) Save() error {
 
 func GetCandle(productCode string, duration time.Duration, dateTime time.Time) *Candle {
 	tableName := GetCandleTableName(productCode, duration)
-	cmd := fmt.Sprintf("SELECT time, open, close, high, low, volume FROM %s WHERE time = ?", tableName)
+	cmd := fmt.Sprintf("SELECT time, open, close, high, low, volume FROM  %s WHERE time = ?", tableName)
 	row := DbConnection.QueryRow(cmd, dateTime.Format(time.RFC3339))
 	var candle Candle
 	err := row.Scan(&candle.Time, &candle.Open, &candle.Close, &candle.High, &candle.Low, &candle.Volume)
@@ -68,7 +68,8 @@ func CreateCandleWithDuration(ticker bitflyer.Ticker, productCode string, durati
 	currentCandle := GetCandle(productCode, duration, ticker.TruncateDateTime(duration))
 	price := ticker.GetMidPrice()
 	if currentCandle == nil {
-		candle := NewCandle(productCode, duration, ticker.TruncateDateTime(duration), price, price, price, price, ticker.Volume)
+		candle := NewCandle(productCode, duration, ticker.TruncateDateTime(duration),
+			price, price, price, price, ticker.Volume)
 		candle.Create()
 		return true
 	}
