@@ -59,6 +59,10 @@ go-clean:
 run:
 	$(DOCKER_EXEC_WEB) go run main.go
 
+## sqlite: sqlite connect
+sqlite:
+	sqlite3 ./stockdata.sql
+
 localci:
 	circleci local execute
 

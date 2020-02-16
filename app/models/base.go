@@ -13,6 +13,7 @@ const (
 	tableNameSignalEvents = "signal_events"
 )
 
+// DbConnection Connection
 var DbConnection *sql.DB
 
 func GetCandleTableName(productCode string, duration time.Duration) string {
